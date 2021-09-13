@@ -11,27 +11,21 @@ def hash_collision(k):
    
     #Collision finding code goes here
     
-    x=os.urandom(64)
-    
-    hashed=hashlib.sha256(x).digest()
-
-    int_hashed=int.from_bytes(hashed,"big")
-    mask=(1<<k)-1
-
-    key=int_hashed&mask
-    #print (mask)
 
     dict={}
-
+    mask=(1<<k)-1
+    #print(bin(mask))
 
     while True:
 
         x=os.urandom(64)
     
-        hashed=hashlib.sha256(x).digest()
+        # hashed=hashlib.sha256(x).digest()
 
-        int_hashed=int.from_bytes(hashed,"little")
-        mask=(1<<k)-1
+        # int_hashed=int.from_bytes(hashed,"little")
+
+        int_hashed=gethash(x)
+        
         key=int_hashed&mask
 
         if key in dict:
@@ -40,12 +34,23 @@ def hash_collision(k):
         else:
             dict[key]=x
 
+    print(bin(gethash(x)&mask))
+    print(bin(gethash(y)&mask))
 
     
     return( x, y )
 
-if __name__ == '__main__':
-    print(hash_collision(9))
+
+def gethash(x):
+
+    hashed=hashlib.sha256(x).digest()
+
+    int_hashed=int.from_bytes(hashed,"big")
+
+    return int_hashed
+
+# if __name__ == '__main__':
+    # print(hash_collision(9))
 
 
 
