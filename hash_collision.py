@@ -15,7 +15,7 @@ def hash_collision(k):
     
     hashed=hashlib.sha256(x).digest()
 
-    int_hashed=int.from_bytes(hashed,"little")
+    int_hashed=int.from_bytes(hashed,"big")
     mask=(1<<k)-1
 
     key=int_hashed&mask
