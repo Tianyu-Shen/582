@@ -34,8 +34,8 @@ def hash_collision(k):
         else:
             dict[key]=x
 
-    print(bin(gethash(x)&mask))
-    print(bin(gethash(y)&mask))
+    # print(bin(gethash(x)&mask))
+    # print(bin(gethash(y)&mask))
 
     
     return( x, y )
