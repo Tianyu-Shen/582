@@ -19,16 +19,15 @@ def sign(m):
 
 	
 
-	print("done")
 	#generate signature
 	#Your code here
 	k=random.randint(1,n)
 	W=G*k
-	print("done")
+	
 
 	x1=W.x
 	y1=W.y
-
+	print("done")
 	r=pow(x1,1,n)
 	z=sha256(m.encode('utf-8')).digest()
 	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),n)
