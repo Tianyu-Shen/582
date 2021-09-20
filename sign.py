@@ -14,9 +14,8 @@ def sign(m):
 	print(type(d))
 	print(type(G))
 
-	public_key =G
-	for i in range(d):
-		public_key+=G
+	public_key =G*d
+
 
 	
 
