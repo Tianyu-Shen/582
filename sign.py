@@ -9,7 +9,7 @@ def sign(m):
 	#generate public key
 	#Your code here
 	G=secp256k1.G
-	n=int("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8C",16)
+	n=secp256k1.q
 	d=1 
 	public_key = d*G
 
