@@ -9,7 +9,7 @@ def sign(m):
 	#generate public key
 	#Your code here
 	G=secp256k1.G
-	n=ecdsa.secp256k1.generator.order()
+	n=ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).curve.generator.order()
 	d=1 
 	public_key = d*G
 
