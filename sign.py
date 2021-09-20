@@ -23,9 +23,7 @@ def sign(m):
 	#generate signature
 	#Your code here
 	k=random.randint(1,n)
-	W=G
-	for i in range(k):
-		W+=G
+	W=G*k
 	print("done")
 
 	x1=W.x
