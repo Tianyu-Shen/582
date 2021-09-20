@@ -16,7 +16,7 @@ def sign(m):
 
 	#generate signature
 	#Your code here
-	k=random.ranint(1,n)
+	k=random.randint(1,n)
 	W=k*G
 
 	x1=W.x
