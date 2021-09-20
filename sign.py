@@ -13,13 +13,21 @@ def sign(m):
 	d=1
 	print(type(d))
 	print(type(G))
-	public_key = d*G
+
+	public_key =G
+	for i in range(d):
+		public_key+=G
+
+	
 
 
 	#generate signature
 	#Your code here
 	k=random.randint(1,n)
-	W=k*G
+	W=G
+	for i in range(k):
+		W+=G
+	
 
 	x1=W.x
 	y1=W.y
