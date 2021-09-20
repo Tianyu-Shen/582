@@ -20,14 +20,14 @@ def sign(m):
 
 	
 
-
+	print("done")
 	#generate signature
 	#Your code here
 	k=random.randint(1,n)
 	W=G
 	for i in range(k):
 		W+=G
-	
+	print("done")
 
 	x1=W.x
 	y1=W.y
