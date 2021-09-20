@@ -10,7 +10,9 @@ def sign(m):
 	#Your code here
 	G=secp256k1.G
 	n=secp256k1.q
-	d=1 
+	d=1
+	print(type(d))
+	print(type(G))
 	public_key = d*G
 
 
