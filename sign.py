@@ -9,14 +9,14 @@ def sign(m):
 	#generate public key
 	#Your code here
 	G=secp256k1.G
-	n=ecdsa.SigningKey.from_string(secret, curve=ecdsa.SECP256k1).curve.generator.order()
+	n=FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C
 	d=1 
 	public_key = d*G
 
 
 	#generate signature
 	#Your code here
-	k=random.ranint(1,10000000000)
+	k=random.ranint(1,n)
 	W=k*G
 
 	x1=W.x
