@@ -30,7 +30,8 @@ def sign(m):
 	
 	r=pow(x1,1,n)
 	
-	z=sha256(m.encode('utf-8')).digest()
+	z=int.from_bytes(sha256(m.encode('utf-8')).digest(),"big")
+
 	print("k"+str(type(k)))
 	print("n"+str(type(n)))
 	print("z"+str(type(z)))
