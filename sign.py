@@ -32,13 +32,13 @@ def sign(m):
 	
 	z=int.from_bytes(sha256(m.encode('utf-8')).digest(),"big")
 
-	print("k"+str(type(k)))
-	print("n"+str(type(n)))
-	print("z"+str(type(z)))
-	print("r"+str(type(r)))
-	print("d"+str(type(d)))
-
-	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),n)
+	# print("k"+str(type(k)))
+	# print("n"+str(type(n)))
+	# print("z"+str(type(z)))
+	# print("r"+str(type(r)))
+	# print("d"+str(type(d)))
+	# s2=pow(pow(z,1,n)+pow(r*d,1,n),1,n)
+	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),1,n)
 	print("s done ")
 	assert isinstance( public_key, point.Point )
 	assert isinstance( r, int )
