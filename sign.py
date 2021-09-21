@@ -10,7 +10,7 @@ def sign(m):
 	#Your code here
 	G=secp256k1.G
 	n=secp256k1.q
-	d=random(1,n)
+	d=random.randint(1,n)
 	# print(type(d))
 	# print(type(G))
 
