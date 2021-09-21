@@ -27,8 +27,9 @@ def sign(m):
 
 	x1=W.x
 	y1=W.y
-	print("done")
+	
 	r=pow(x1,1,n)
+	print("done")
 	z=sha256(m.encode('utf-8')).digest()
 	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),n)
 
