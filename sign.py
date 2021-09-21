@@ -29,8 +29,9 @@ def sign(m):
 	y1=W.y
 	
 	r=pow(x1,1,n)
-	print("done")
+	print("r done")
 	z=sha256(m.encode('utf-8')).digest()
+	print("z done")
 	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),n)
 
 	assert isinstance( public_key, point.Point )
