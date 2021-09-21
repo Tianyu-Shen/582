@@ -10,7 +10,7 @@ def sign(m):
 	#Your code here
 	G=secp256k1.G
 	n=secp256k1.q
-	d=1
+	d=random(1,n)
 	# print(type(d))
 	# print(type(G))
 
@@ -39,7 +39,7 @@ def sign(m):
 	# print("d"+str(type(d)))
 	# s2=pow(pow(z,1,n)+pow(r*d,1,n),1,n)
 	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),1,n)
-	print("s done ")
+	#print("s done ")
 	assert isinstance( public_key, point.Point )
 	assert isinstance( r, int )
 	assert isinstance( s, int )
