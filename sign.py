@@ -11,8 +11,8 @@ def sign(m):
 	G=secp256k1.G
 	n=secp256k1.q
 	d=1
-	print(type(d))
-	print(type(G))
+	# print(type(d))
+	# print(type(G))
 
 	public_key =G*d
 
@@ -31,7 +31,12 @@ def sign(m):
 	r=pow(x1,1,n)
 	
 	z=sha256(m.encode('utf-8')).digest()
-	
+	print("k"+str(type(k)))
+	print("n"+str(type(n)))
+	print("z"+str(type(z)))
+	print("r"+str(type(r)))
+	print("d"+str(type(d)))
+
 	s = pow(pow(k,-1,n)*pow((z+r*d),1,n),n)
 	print("s done ")
 	assert isinstance( public_key, point.Point )
