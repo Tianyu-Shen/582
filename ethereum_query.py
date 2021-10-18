@@ -42,7 +42,7 @@ def get_transaction_cost(tx):
 def get_block_cost(block_num):
     block_cost = 1  #YOUR CODE HERE
     b=w3.eth.get_block(block_num)
-    ts=b1.get("transactions")
+    ts=b.get("transactions")
 
     sum=0
 
@@ -67,6 +67,6 @@ def get_most_expensive_transaction(block_num):
             high=fee
             tx=i
 
-    max_tx=HexBytes(x)
+    max_tx=HexBytes(tx)
     return max_tx
 
