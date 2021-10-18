@@ -13,28 +13,31 @@ w3 = Web3(Web3.HTTPProvider('http://' + IP_ADDR + ':' + PORT))
 #     print( "Failed to connect to Ethereum node!" )
 
 def get_transaction(tx):
-    tx = {}   #YOUR CODE HERE
-    return w3.eth.get_transaction(tx)
+    block= w3.eth.get_transaction(tx)#YOUR CODE HERE
+    return block
 
 # Return the gas price used by a particular transaction,
 #   tx is the transaction
 def get_gas_price(tx):
     
-    # t=get_transaction(tx)
-
-    return tx.get("gasPrice")  
+    gas_price=1
+    t=get_transaction(tx)
+    gas_price=t.get("gasPrice")
+    return gas_price
 
 def get_gas(tx):
-    
+    gas=1
     rec=w3.eth.get_transaction_receipt(tx)
-
-    return rec.get("gasUsed")
-
+    gas=rec.get("gasUsed")
+    return gas
 def get_transaction_cost(tx):
+
+    tx_cost=1;
     
     price=get_gas_price(tx)
     a=get_gas(tx)
-    return a*price
+    tx_cost=price*a
+    return tx_cost
 
 def get_block_cost(block_num):
     block_cost = 1  #YOUR CODE HERE
@@ -64,6 +67,6 @@ def get_most_expensive_transaction(block_num):
             high=fee
             tx=i
 
-    max_tx=HexBytes(tx)
+    max_tx=HexBytes(x)
     return max_tx
 
