@@ -20,9 +20,9 @@ def get_transaction(tx):
 #   tx is the transaction
 def get_gas_price(tx):
     
-    t=get_transaction(tx)
+    # t=get_transaction(tx)
 
-    return t.get("gasPrice")  
+    return tx.get("gasPrice")  
 
 def get_gas(tx):
     
