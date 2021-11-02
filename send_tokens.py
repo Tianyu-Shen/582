@@ -13,6 +13,8 @@ headers = {
    "X-API-Key": algod_token,
 }
 
+sender_pk="FYZ23ED7EFSYS5OMJVKJKGHG6Y6IJTKOMPVQFIPI5XAAEH3UEZQ3PUVIWA"
+sender_sk="2i6o7UmZddSG6aEGK2pLkuXwwRKeYHoet1Ss4VTLUsQuM62QfyFliXXMTVSVGOb2PITNTmPrAqHo7cACH3QmYQ=="
 acl = algod.AlgodClient(algod_token, algod_address, headers)
 min_balance = 100000 #https://developer.algorand.org/docs/features/accounts/#minimum-balance
 
@@ -24,7 +26,7 @@ def send_tokens( receiver_pk, tx_amount ):
     last_valid_round = params.last
 
     #Your code here
-    trans=transaction.PaymentTxn(sender_pk,tx_fee,first_valid_round,last_valid_round,gen_hash,tx_amount)
+    trans=transaction.PaymentTxn(sender_pk,tx_fee,first_valid_round,last_valid_round,gen_hash,receiver_pk,tx_amount)
     
     signed=trans.sign(sender_sk)
 
