@@ -22,13 +22,12 @@ def process_order(order_d):
     exchange_rate = buy_am/sell_am
     existing = session.query(Order).filter(Order.filled == None, Order.buy_currency == order.sell_currency,Order.sell_currency == order.buy_currency, Order.sell_amount/Order.buy_amount >= exchange_rate).first()
     #filled
-    if existing is not None:
-    	existing.filled = datetime.now()
+
+   	existing.filled = datetime.now()
     order.filled = datetime.now()
     #counterparty id
-    if existing is not None:
-    	order.counterparty_id = existing.id
-    	existing.counterparty_id = order.id
+    order.counterparty_id = existing.id
+    existing.counterparty_id = order.id
     session.commit()
     #order can buy more
     if(existing.sell_amount < buy_am):
