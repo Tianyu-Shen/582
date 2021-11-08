@@ -46,8 +46,8 @@ def process_order(order_d):
       					 receiver_pk=order.receiver_pk, 
       					 buy_currency=order.buy_currency, 
       					 sell_currency=order.sell_currency, 
-      					 buy_amount=new_buy, 
-      					 sell_amount=new_sell, 
+      					 buy_amount=nb, 
+      					 sell_amount=ns, 
       					 creator_id = order.id)
       session.add(order_obj)
       session.commit()
@@ -59,8 +59,8 @@ def process_order(order_d):
       					 receiver_pk=existing.receiver_pk, 
       					 buy_currency=existing.buy_currency,
       					 sell_currency=existing.sell_currency, 
-      					 buy_amount=new_buy, 
-      					 sell_amount=new_sell, 
+      					 buy_amount=nb, 
+      					 sell_amount=ns, 
       					 creator_id = existing.id)
       session.add(order_obj)
       session.commit()
