@@ -26,8 +26,9 @@ def process_order(order_d):
     	existing.filled = datetime.now()
     order.filled = datetime.now()
     #counterparty id
-    order.counterparty_id = existing.id
-    existing.counterparty_id = order.id
+    if existing is not None:
+    	order.counterparty_id = existing.id
+    	existing.counterparty_id = order.id
     session.commit()
     #order can buy more
     if(existing.sell_amount < buy_am):
