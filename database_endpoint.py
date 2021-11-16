@@ -30,7 +30,7 @@ def shutdown_session(response_or_exc):
 -------- Helper methods (feel free to add your own!) -------
 """
 
-def log_message(d)
+def log_message(d):
     # Takes input dictionary d and writes it to the Log table
     msg_dict = d['payload']
     log_obj = Log(message = json.dumps(msg_dict))
@@ -116,7 +116,7 @@ def order_book():
     for row in existing:
         # timestamp_str = str(row.timestamp)
         result['data'].append({'sender_pk': row.sender_pk,'receiver_pk': row.receiver_pk, 'buy_currency': row.buy_currency, 'sell_currency': row.sell_currency, 'buy_amount': row.buy_amount, 'sell_amount': row.sell_amount,'signature': row.signature})
-        
+
     return jsonify(result)
 
 if __name__ == '__main__':
