@@ -29,7 +29,7 @@ def attack(dao_address:address):
  
     # Attack cannot withdraw more than what exists in the DAO
     if dao_address.balance < msg.value:
-        deposit_amount = dao_address.balance
+        amount = dao_address.balance
     
     # TODO: make the deposit into the DAO   
     
