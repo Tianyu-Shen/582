@@ -32,7 +32,7 @@ def provideLiquidity(tokenA_addr: address, tokenB_addr: address, tokenA_quantity
 	self.tokenBQty = tokenB_quantity
 	self.invariant = tokenA_quantity * tokenB_quantity
 	assert self.invariant > 0
-	assert self.invariant > 0
+	
 
 # Trades one token for the other
 @external
@@ -48,6 +48,9 @@ def tradeTokens(sell_token: address, sell_quantity: uint256):
 		self.tokenB.transfer(msg.sender, tokenB_to_send)
 		self.tokenBQty = new_total_tokenB
 		self.tokenAQty = new_total_tokenA
+
+
+
 	else:
 		self.tokenB.transferFrom(msg.sender, self, sell_quantity)
 		new_total_tokenB: uint256 = self.tokenBQty + sell_quantity
@@ -56,6 +59,8 @@ def tradeTokens(sell_token: address, sell_quantity: uint256):
 		self.tokenA.transfer(msg.sender, tokenA_to_send)
 		self.tokenAQty = new_total_tokenA
 		self.tokenBQty = new_total_tokenB
+
+
 # Owner can withdraw their funds and destroy the market maker
 @external
 def ownerWithdraw():
@@ -64,3 +69,12 @@ def ownerWithdraw():
 	self.tokenA.transfer(self.owner, self.tokenAQty)
 	self.tokenB.transfer(self.owner, self.tokenBQty)
 	selfdestruct(self.owner)
+
+
+
+
+
+
+
+
+	
