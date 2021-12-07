@@ -45,7 +45,7 @@ def log_message(d):
 
 """ End of helper methods """
 
-def process_order(order_d):
+def process_order(order):
     #Your code here
     # order = Order(  sender_pk=order_d['sender_pk'],
     #                 receiver_pk=order_d['receiver_pk'], 
