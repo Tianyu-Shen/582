@@ -53,8 +53,8 @@ def process_order(order):
     #                 sell_currency=order_d['sell_currency'], 
     #                 buy_amount=order_d['buy_amount'], 
     #                 sell_amount=order_d['sell_amount'] )
-    g.add(order)
-    g.commit();
+    g.session.add(order)
+    g.session.commit();
     bc = order.buy_currency
     sc = order.sell_currency
     ba = order.buy_amount
