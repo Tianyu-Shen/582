@@ -47,12 +47,12 @@ def log_message(d):
 
 def process_order(order_d):
     #Your code here
-    order = Order(  sender_pk=order_d['sender_pk'],
-                    receiver_pk=order_d['receiver_pk'], 
-                    buy_currency=order_d['buy_currency'], 
-                    sell_currency=order_d['sell_currency'], 
-                    buy_amount=order_d['buy_amount'], 
-                    sell_amount=order_d['sell_amount'] )
+    # order = Order(  sender_pk=order_d['sender_pk'],
+    #                 receiver_pk=order_d['receiver_pk'], 
+    #                 buy_currency=order_d['buy_currency'], 
+    #                 sell_currency=order_d['sell_currency'], 
+    #                 buy_amount=order_d['buy_amount'], 
+    #                 sell_amount=order_d['sell_amount'] )
     g.add(order)
     g.commit();
     bc = order.buy_currency
