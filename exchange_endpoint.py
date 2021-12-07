@@ -70,12 +70,15 @@ def process_order(order):
 
     existing.filled = datetime.now()
     order.filled = datetime.now()
+    g.session.commit()
     #counterparty id
     order.counterparty_id = existing.id
     existing.counterparty_id = order.id
-    g.commit()
+    g.session.commit()
+
+
     #order can buy more
-    if(existing.sell_amount < ba):
+    if(existing.sell_amount <= ba):
       nb = ba - existing.sell_amount
       ns = nb / exchange_rate
       #Insert the order
@@ -86,8 +89,8 @@ def process_order(order):
                          buy_amount=nb, 
                          sell_amount=ns, 
                          creator_id = order.id)
-      g.add(order_obj)
-      g.commit()
+      g.session.add(order_obj)
+      g.session.commit()
     elif(existing.sell_amount>ba):
       ns = existing.sell_amount - ba
       nb = ns * existing.buy_amount/existing.sell_amount
@@ -99,8 +102,8 @@ def process_order(order):
                          buy_amount=nb, 
                          sell_amount=ns, 
                          creator_id = existing.id)
-      g.add(order_obj)
-      g.commit()
+      g.session.add(order_obj)
+      g.session.commit()
       return
 
 @app.route('/trade', methods=['POST'])
