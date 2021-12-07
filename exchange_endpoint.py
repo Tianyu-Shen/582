@@ -138,7 +138,7 @@ def trade():
         sig = content["sig"]
         verify = False
         # TODO: Check the signature
-        if platform == "Ethereum":
+        if plat == "Ethereum":
           eth_encoded_msg = eth_account.messages.encode_defunct(text=message)
 
           pk2 = eth_account.Account.recover_message(eth_encoded_msg,signature=sig)
@@ -153,7 +153,7 @@ def trade():
             verify = False
 
 
-        elif platform == "Algorand":
+        elif plat == "Algorand":
 
           if algosdk.util.verify_bytes(message.encode('utf-8'),sig,pk):
             print( "Algo sig verifies!" )
