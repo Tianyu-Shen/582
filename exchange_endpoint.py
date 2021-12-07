@@ -145,21 +145,21 @@ def trade():
           # TODO: Add the order to the database
           if pk == pk2:
 
-            print( "Eth sig verifies!" )
+            print( "Eth verified!" )
             verify = True
 
           else:
-            print( "Eth sig fails verification!" )
+            print( "Eth failed" )
             verify = False
 
 
         elif plat == "Algorand":
 
           if algosdk.util.verify_bytes(message.encode('utf-8'),sig,pk):
-            print( "Algo sig verifies!" )
+            print( "Algo verified!" )
             verify = True
           else:
-            print( "Algo sig verification failed!" )
+            print( "Algo failed!" )
             verify = False
         
         order = Order( sender_pk=msg['sender_pk'],receiver_pk=msg['receiver_pk'], buy_currency=msg['buy_currency'], sell_currency=msg['sell_currency'], buy_amount=msg['buy_amount'], sell_amount=msg['sell_amount'], signature = content['sig'] )
