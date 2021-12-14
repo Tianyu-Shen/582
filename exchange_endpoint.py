@@ -88,30 +88,37 @@ def connect_to_blockchains():
 
 def log_message(message_dict):
     msg = json.dumps(message_dict)
+    
 
     # TODO: Add message to the Log table
     log_obj = Log(message = msg)
     g.session.add(log_obj)
     g.session.commit()
+    
     return
 
 def get_algo_keys():
     
     # TODO: Generate or read (using the mnemonic secret) 
     # the algorand public/private keys
-    algo_pk = "TK3UUXU5V5JVJRAE6ZSXFLPTCY3O5BFAZVRQQKRGQFEJ54TZW44DJ3B7W4"
-    algo_sk = "thmCRkH7LVdhnxjNYW+5lEu52VnhcMHM86Q+onSoxb2at0pena9TVMQE9mVyrfMWNu6EoM1jCComgUie8nm3OA=="
+
+    algo_pk = "SB5D3PBO5HOEW7R3ZDQGVP3JXQ6KPB4ZY67IXAVRUXFY7CETRA3YVATE3I"
+    algo_sk = "z1AfF4d0433psWNAS+b0acQDbmknKuFOePUGAudY3AqQej28LuncS347yOBqv2m8PKeHmce+i4KxpcuPiJOINw=="
+    
     return algo_sk, algo_pk
 
 
 def get_eth_keys(filename = "eth_mnemonic.txt"):
-    w3 = Web3()
+    
     
     # TODO: Generate or read (using the mnemonic secret) 
     # the ethereum public/private keys
-    eth_pk = '0x270bd224a4B42e199c67105b0602EAd57443F0BB'
 
-    eth_sk = b'?|4\xbe\xf2e\xe0\x1f\x05\x08\x1dq7\x85\xac\x18,?!N_\x7f\x1f(r\xc2\xa1\x84\x8fS\x12K'
+
+
+    eth_pk = '0x04307F37286361Ad0B5E9d59b7d424051aF64D57'
+
+    eth_sk = '16fc7fbbcc6e972ddedbb47aed301ed8ba11c9a72d413ad4d85598d9dea965d1'
     return eth_sk, eth_pk
   
 def fill_order(order, txes=[]):
@@ -119,13 +126,18 @@ def fill_order(order, txes=[]):
     # Match orders (same as Exchange Server II)
     # Validate the order has a payment to back it (make sure the counterparty also made a payment)
     # Make sure that you end up executing all resulting transactions!
+
+	# If your fill_order function is recursive, and you want to have fill_order return a list of transactions to be filled, 
+	# Then you can use the "txes" argument to pass the current list of txes down the recursion
+	# Note: your fill_order function is *not* required to be recursive, and it is *not* required that it return a list of transactions, 
+	# but executing a group of transactions can be more efficient, and gets around the Ethereum nonce issue described in the instructions
     g.session.add(order)
     g.session.commit();
     
-    bc = order.buy_currency
-    sc = order.sell_currency
-    ba = order.buy_amount
-    sa = order.sell_amount
+    buy_curr = order.buy_currency
+    sell_curr = order.sell_currency
+    buy_am = order.buy_amount
+    sell_am = order.sell_amount
     send_pk = order.sender_pk
     receive_pk = order.receiver_pk
     exchange_rate = buy_am/sell_am
@@ -147,21 +159,20 @@ def fill_order(order, txes=[]):
 
 
     #order can buy more
-    if(existing.sell_amount <= ba):
-      nb = ba - existing.sell_amount
-      ns = nb / exchange_rate
+    if(existing.sell_amount <= buy_am):
+      new_buy = buy_am - existing.sell_amount
+      new_sell = new_buy / exchange_rate
       #Insert the order
       order_obj = Order( sender_pk=order.sender_pk,receiver_pk=order.receiver_pk, buy_currency=order.buy_currency, sell_currency=order.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = order.id)
       fill_order(order_obj, txes)
     elif(existing.sell_amount>buy_am):
-      ns = existing.sell_amount - ba
-      nb = ns * existing.buy_amount/existing.sell_amount
+      new_sell = existing.sell_amount - buy_am
+      new_buy = new_sell * existing.buy_amount/existing.sell_amount
       #Insert the order
       order_obj = Order( sender_pk=existing.sender_pk,receiver_pk=existing.receiver_pk, buy_currency=existing.buy_currency, sell_currency=existing.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = existing.id)
       fill_order(order_obj, txes)
     
     return
-    
   
 def execute_txes(txes):
     if txes is None:
@@ -184,7 +195,7 @@ def execute_txes(txes):
     #       1. Send tokens on the Algorand and eth testnets, appropriately
     #          We've provided the send_tokens_algo and send_tokens_eth skeleton methods in send_tokens.py
     #       2. Add all transactions to the TX table
-
+    
     send_tokens_algo(g.acl, algo_sk, algo_txes)
     for tx in algo_txes:
         dict = {'platform': 'Algorand','receiver_pk': tx['receiver_pk'],'order_id': tx['order_id'],'tx_id': tx['tx_id']}
@@ -203,18 +214,20 @@ def execute_txes(txes):
   
 @app.route('/address', methods=['POST'])
 def address():
+    #print("start address")
     if request.method == "POST":
         content = request.get_json(silent=True)
         if 'platform' not in content.keys():
-            print( f"Error: no platform provided" )
-            return jsonify( "Error: no platform provided" )
+            print(f"Error: no platform provided" )
+            return jsonify("Error: no platform provided" )
         if not content['platform'] in ["Ethereum", "Algorand"]:
-            print( f"Error: {content['platform']} is an invalid platform" )
-            return jsonify( f"Error: invalid platform provided: {content['platform']}"  )
-        
+            print(f"Error: {content['platform']} is an invalid platform" )
+            return jsonify(f"Error: invalid platform provided: {content['platform']}"  )
+        #print("success until here")
+        # The endpoint should return a (JSON formatted) response with the exchange server’s public-key on the specified platform (either ‘Ethereum’ or ‘Algorand’).
         if content['platform'] == "Ethereum":
             #Your code here
-           	eth_sk,eth_pk = get_eth_keys()
+            eth_sk,eth_pk = get_eth_keys()
             
             return jsonify(eth_pk)
         if content['platform'] == "Algorand":
@@ -251,64 +264,48 @@ def trade():
         
         # Your code here
         
-        # 1. Check the signature
+    
         
-        # 2. Add the order to the table
-        
-        # 3a. Check if the order is backed by a transaction equal to the sell_amount (this is new)
 
-        # 3b. Fill the order (as in Exchange Server II) if the order is valid
-        
-        # 4. Execute the transactions
-        
-        # If all goes well, return jsonify(True). else return jsonify(False)
-        plat = content['payload']['platform']
-        msg = content['payload']
-        message = json.dumps(msg)
+        platform = content['payload']['platform']
+        msg_dict = content['payload']
+        message = json.dumps(msg_dict)
         pk = content['payload']['sender_pk']
         sig = content["sig"]
         verify = False
-        # TODO: Check the signature
-        if plat == "Ethereum":
+        
+        if platform == "Ethereum":
           eth_encoded_msg = eth_account.messages.encode_defunct(text=message)
-
           pk2 = eth_account.Account.recover_message(eth_encoded_msg,signature=sig)
-          # TODO: Add the order to the database
           if pk == pk2:
-
-            print( "Eth verified!" )
+            print( "Eth sig verifies!" )
             verify = True
-
           else:
-            print( "Eth failed" )
+            print( "Eth sig fails verification!" )
             verify = False
-
-
-        elif plat == "Algorand":
-
+        elif platform == "Algorand":
           if algosdk.util.verify_bytes(message.encode('utf-8'),sig,pk):
-            print( "Algo verified!" )
+            print( "Algo sig verifies!" )
             verify = True
           else:
-            print( "Algo failed!" )
+            print( "Algo sig verification failed!" )
             verify = False
-
-
+  
         if verify == True:
           # 1. Check the signature
-        	msg_dict['signature'] = sig
+          msg_dict['signature'] = sig
             # 2. Add the order to the table   
-        	order = Order( sender_pk=msg_dict['sender_pk'],receiver_pk=msg_dict['receiver_pk'], buy_currency=msg_dict['buy_currency'], sell_currency=msg_dict['sell_currency'], buy_amount=msg_dict['buy_amount'], sell_amount=msg_dict['sell_amount'], signature = content['sig'] )
+          order = Order( sender_pk=msg_dict['sender_pk'],receiver_pk=msg_dict['receiver_pk'], buy_currency=msg_dict['buy_currency'], sell_currency=msg_dict['sell_currency'], buy_amount=msg_dict['buy_amount'], sell_amount=msg_dict['sell_amount'], signature = content['sig'] )
          # 3a. Check if the order is backed by a transaction equal to the sell_amount (this is new)
-        	if order.sell_currency == "Ethereum":
-            	tx = g.w3.eth.get_transaction(msg_dict['tx_id'])
-            	if tx is None or tx["value"] != order.sell_amount:
+          if order.sell_currency == "Ethereum":
+            tx = g.w3.eth.get_transaction(msg_dict['tx_id'])
+            if tx is None or tx["value"] != order.sell_amount:
                     return jsonify(False)
 
-        	if order.sell_currency == "Algorand":
-              	tx = indexer.search_transaction(txid=payload['tx_id'])
-              	if tx is None or tx.amt != order.sell_amount:
-               		return jsonify(False)
+          if order.sell_currency == "Algorand":
+              tx = indexer.search_transaction(txid=payload['tx_id'])
+              if tx is None or tx.amt != order.sell_amount:
+                  return jsonify(False)
         # 3b. Fill the order (as in Exchange Server II) if the order is valid
           txes = []
           fill_order(order, txes)
@@ -316,15 +313,21 @@ def trade():
                   
           execute_txes(txes)
           return jsonify(True)
-    	else:
-          	log_message(payload)
-          	return jsonify(False)
+        else:
+          log_message(payload)
+          return jsonify(False)
+          
+
+        
+        
+        
+        
+        
 
 @app.route('/order_book')
 def order_book():
-    #fields = [ "buy_currency", "sell_currency", "buy_amount", "sell_amount", "signature", "tx_id", "receiver_pk", "sender_pk" ]
+    #fields = [ "buy_currency", "sell_currency", "buy_amount", "sell_amount", "signature", "tx_id", "receiver_pk" ]
     
-    # Same as before
     existing = g.session.query(Order).all()
     result = {"data": []}
 

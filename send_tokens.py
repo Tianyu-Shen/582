@@ -19,6 +19,7 @@ def connect_to_algo(connection_type=''):
         algod_address = "https://testnet-algorand.api.purestake.io/ps2"
         client = algod.AlgodClient(algod_token, algod_address, headers={'X-Api-key': algod_token})
 
+
     return client
 
 def send_tokens_algo( acl, sender_sk, txes):
@@ -40,17 +41,14 @@ def send_tokens_algo( acl, sender_sk, txes):
         params.first += 1
         params.last += 1
         unsigned_tx = transaction.PaymentTxn(sender_pk, params, tx['receiver_pk'], tx['send_amount'])
-
         # TODO: Sign the transaction
-        signed_tx =unsigned_tx.sign(sender_sk)
+        signed_tx = unsigned_tx.sign(sender_sk)
         
         try:
             print(f"Sending {tx['amount']} microalgo from {sender_pk} to {tx['receiver_pk']}" )
             
             # TODO: Send the transaction to the testnet
-            
             tx_id =signed_tx.transaction.get_txid()
-
             tx_ids.append(tx_id)
             tx['tx_id'] = tx_id
             acl.send_transaction(signed_tx)
@@ -126,7 +124,6 @@ def send_tokens_eth(w3,sender_sk,txes):
     track = w3.eth.get_transaction_receipt(sender_pk, "pending")
     tx_ids = []
     for i,tx in enumerate(txes):
-        # Your code here
         tx_dict ={'nonce': track + i,'gasPrice': w3.eth.gas_price,'gas': w3.eth.estimate_gas({'from': sender_pk, 'to': tx['receiver_pk'],'data': b'', 'amount': tx['amount']}),'to': tx['receiver_pk'],'value': tx['amount'], 'data': b''}
         signed_tx = w3.eth.account.sign_transaction(tx_dict, sender_sk)
         tx_id = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
