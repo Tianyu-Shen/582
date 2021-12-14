@@ -9,14 +9,21 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import load_only
 from datetime import datetime
+import math
 import sys
+import traceback
 
-from models import Base, Order, Log
+# TODO: make sure you implement connect_to_algo, send_tokens_algo, and send_tokens_eth
+from send_tokens import connect_to_algo, connect_to_eth, send_tokens_algo, send_tokens_eth
+
+from models import Base, Order, TX
 engine = create_engine('sqlite:///orders.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 
 app = Flask(__name__)
+
+""" Pre-defined methods (do not need to change) """
 
 @app.before_request
 def create_session():
@@ -28,53 +35,115 @@ def shutdown_session(response_or_exc):
     g.session.commit()
     g.session.remove()
 
+def connect_to_blockchains():
+    try:
+        # If g.acl has not been defined yet, then trying to query it fails
+        acl_flag = False
+        g.acl
+    except AttributeError as ae:
+        acl_flag = True
+    
+    try:
+        if acl_flag or not g.acl.status():
+            # Define Algorand client for the application
+            g.acl = connect_to_algo()
+    except Exception as e:
+        print("Trying to connect to algorand client again")
+        print(traceback.format_exc())
+        g.acl = connect_to_algo()
+    
+    try:
+        icl_flag = False
+        g.icl
+    except AttributeError as ae:
+        icl_flag = True
+    
+    try:
+        if icl_flag or not g.icl.health():
+            # Define the index client
+            g.icl = connect_to_algo(connection_type='indexer')
+    except Exception as e:
+        print("Trying to connect to algorand indexer client again")
+        print(traceback.format_exc())
+        g.icl = connect_to_algo(connection_type='indexer')
 
-""" Suggested helper methods """
+        
+    try:
+        w3_flag = False
+        g.w3
+    except AttributeError as ae:
+        w3_flag = True
+    
+    try:
+        if w3_flag or not g.w3.isConnected():
+            g.w3 = connect_to_eth()
+    except Exception as e:
+        print("Trying to connect to web3 again")
+        print(traceback.format_exc())
+        g.w3 = connect_to_eth()
+        
+""" End of pre-defined methods """
+        
+""" Helper Methods (skeleton code for you to implement) """
 
-def check_sig(payload,sig):
-    pass
+def log_message(message_dict):
+    msg = json.dumps(message_dict)
 
-def fill_order(order,txes=[]):
-    pass
+    # TODO: Add message to the Log table
+    log_obj = Log(message = msg)
+    g.session.add(log_obj)
+    g.session.commit()
+    return
+
+def get_algo_keys():
+    
+    # TODO: Generate or read (using the mnemonic secret) 
+    # the algorand public/private keys
+    algo_pk = "TK3UUXU5V5JVJRAE6ZSXFLPTCY3O5BFAZVRQQKRGQFEJ54TZW44DJ3B7W4"
+    algo_sk = "thmCRkH7LVdhnxjNYW+5lEu52VnhcMHM86Q+onSoxb2at0pena9TVMQE9mVyrfMWNu6EoM1jCComgUie8nm3OA=="
+    return algo_sk, algo_pk
+
+
+def get_eth_keys(filename = "eth_mnemonic.txt"):
+    w3 = Web3()
+    
+    # TODO: Generate or read (using the mnemonic secret) 
+    # the ethereum public/private keys
+    eth_pk = '0x270bd224a4B42e199c67105b0602EAd57443F0BB'
+
+    eth_sk = b'?|4\xbe\xf2e\xe0\x1f\x05\x08\x1dq7\x85\xac\x18,?!N_\x7f\x1f(r\xc2\xa1\x84\x8fS\x12K'
+    return eth_sk, eth_pk
   
-def log_message(d):
-    # Takes input dictionary d and writes it to the Log table
-    # Hint: use json.dumps or str() to get it in a nice string form
-    msg = d['payload']
-    log_obj = Log(message = json.dumps(msg))
-
-""" End of helper methods """
-
-def process_order(order):
-    #Your code here
-    # order = Order(  sender_pk=order_d['sender_pk'],
-    #                 receiver_pk=order_d['receiver_pk'], 
-    #                 buy_currency=order_d['buy_currency'], 
-    #                 sell_currency=order_d['sell_currency'], 
-    #                 buy_amount=order_d['buy_amount'], 
-    #                 sell_amount=order_d['sell_amount'] )
+def fill_order(order, txes=[]):
+    # TODO: 
+    # Match orders (same as Exchange Server II)
+    # Validate the order has a payment to back it (make sure the counterparty also made a payment)
+    # Make sure that you end up executing all resulting transactions!
     g.session.add(order)
     g.session.commit();
+    
     bc = order.buy_currency
     sc = order.sell_currency
     ba = order.buy_amount
     sa = order.sell_amount
-    s_pk = order.sender_pk
-    r_pk = order.receiver_pk
-    exchange_rate = ba/sa
-    existing = session.query(Order).filter(Order.filled == None, 
-                                           Order.buy_currency == order.sell_currency,
-                                           Order.sell_currency == order.buy_currency, 
-                                           Order.sell_amount/Order.buy_amount >= exchange_rate).first()
+    send_pk = order.sender_pk
+    receive_pk = order.receiver_pk
+    exchange_rate = buy_am/sell_am
+    
+    existing = g.session.query(Order).filter(Order.filled == None, Order.buy_currency == order.sell_currency,Order.sell_currency == order.buy_currency, Order.sell_amount/Order.buy_amount >= exchange_rate).first()
+    g.session.commit()
+    if existing == None:
+      return
     #filled
-
-    existing.filled = datetime.now()
-    order.filled = datetime.now()
-    g.session.commit()
+    curr_time = datetime.now()
+    order.filled = curr_time
+    existing.filled = curr_time
     #counterparty id
-    order.counterparty_id = existing.id
-    existing.counterparty_id = order.id
     g.session.commit()
+    existing.counterparty_id = order.id
+    order.counterparty_id = existing.id
+    g.session.commit()
+
 
 
     #order can buy more
@@ -82,55 +151,117 @@ def process_order(order):
       nb = ba - existing.sell_amount
       ns = nb / exchange_rate
       #Insert the order
-      order_obj = Order( sender_pk=order.sender_pk,
-                         receiver_pk=order.receiver_pk, 
-                         buy_currency=order.buy_currency, 
-                         sell_currency=order.sell_currency, 
-                         buy_amount=nb, 
-                         sell_amount=ns, 
-                         creator_id = order.id)
-      g.session.add(order_obj)
-      g.session.commit()
-    elif(existing.sell_amount>ba):
+      order_obj = Order( sender_pk=order.sender_pk,receiver_pk=order.receiver_pk, buy_currency=order.buy_currency, sell_currency=order.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = order.id)
+      fill_order(order_obj, txes)
+    elif(existing.sell_amount>buy_am):
       ns = existing.sell_amount - ba
       nb = ns * existing.buy_amount/existing.sell_amount
       #Insert the order
-      order_obj = Order( sender_pk=existing.sender_pk,
-                         receiver_pk=existing.receiver_pk, 
-                         buy_currency=existing.buy_currency,
-                         sell_currency=existing.sell_currency, 
-                         buy_amount=nb, 
-                         sell_amount=ns, 
-                         creator_id = existing.id)
-      g.session.add(order_obj)
-      g.session.commit()
-      return
+      order_obj = Order( sender_pk=existing.sender_pk,receiver_pk=existing.receiver_pk, buy_currency=existing.buy_currency, sell_currency=existing.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = existing.id)
+      fill_order(order_obj, txes)
+    
+    return
+    
+  
+def execute_txes(txes):
+    if txes is None:
+        return True
+    if len(txes) == 0:
+        return True
+    print( f"Trying to execute {len(txes)} transactions" )
+    print( f"IDs = {[tx['order_id'] for tx in txes]}" )
+    eth_sk, eth_pk = get_eth_keys()
+    algo_sk, algo_pk = get_algo_keys()
+    
+    if not all( tx['platform'] in ["Algorand","Ethereum"] for tx in txes ):
+        print( "Error: execute_txes got an invalid platform!" )
+        print( tx['platform'] for tx in txes )
+
+    algo_txes = [tx for tx in txes if tx['platform'] == "Algorand" ]
+    eth_txes = [tx for tx in txes if tx['platform'] == "Ethereum" ]
+
+    # TODO: 
+    #       1. Send tokens on the Algorand and eth testnets, appropriately
+    #          We've provided the send_tokens_algo and send_tokens_eth skeleton methods in send_tokens.py
+    #       2. Add all transactions to the TX table
+
+    send_tokens_algo(g.acl, algo_sk, algo_txes)
+    for tx in algo_txes:
+        dict = {'platform': 'Algorand','receiver_pk': tx['receiver_pk'],'order_id': tx['order_id'],'tx_id': tx['tx_id']}
+        tx = TX(**{f: dic[f] for f in dict})
+        g.session.add(tx)
+        g.session.commit()
+    send_tokens_eth(g.w3, eth_sk, eth_txes)
+    for tx in eth_txes:
+        dict = {'platform': 'Ethereum','receiver_pk': tx['receiver_pk'],'order_id': tx['order_id'],'tx_id': tx['tx_id']}
+        tx = TX(**{f: dic[f] for f in dict})
+        g.session.add(tx)
+        g.session.commit()
+    return
+
+""" End of Helper methods"""
+  
+@app.route('/address', methods=['POST'])
+def address():
+    if request.method == "POST":
+        content = request.get_json(silent=True)
+        if 'platform' not in content.keys():
+            print( f"Error: no platform provided" )
+            return jsonify( "Error: no platform provided" )
+        if not content['platform'] in ["Ethereum", "Algorand"]:
+            print( f"Error: {content['platform']} is an invalid platform" )
+            return jsonify( f"Error: invalid platform provided: {content['platform']}"  )
+        
+        if content['platform'] == "Ethereum":
+            #Your code here
+           	eth_sk,eth_pk = get_eth_keys()
+            
+            return jsonify(eth_pk)
+        if content['platform'] == "Algorand":
+            #Your code here
+            algo_sk, algo_pk = get_algo_keys()
+            return jsonify(algo_pk)
 
 @app.route('/trade', methods=['POST'])
 def trade():
-    print("In trade endpoint")
+    print( "In trade", file=sys.stderr )
+    connect_to_blockchains()
+    get_keys()
     if request.method == "POST":
         content = request.get_json(silent=True)
-        print( f"content = {json.dumps(content)}" )
-        columns = [ "sender_pk", "receiver_pk", "buy_currency", "sell_currency", "buy_amount", "sell_amount", "platform" ]
+        columns = [ "buy_currency", "sell_currency", "buy_amount", "sell_amount", "platform", "tx_id", "receiver_pk"]
         fields = [ "sig", "payload" ]
-
+        error = False
         for field in fields:
             if not field in content.keys():
                 print( f"{field} not received by Trade" )
-                print( json.dumps(content) )
-                log_message(content)
-                return jsonify( False )
+                error = True
+        if error:
+            print( json.dumps(content) )
+            return jsonify( False )
         
+        error = False
         for column in columns:
             if not column in content['payload'].keys():
                 print( f"{column} not received by Trade" )
-                print( json.dumps(content) )
-                log_message(content)
-                return jsonify( False )
-            
-        #Your code here
-        #Note that you can access the database session using g.session
+                error = True
+        if error:
+            print( json.dumps(content) )
+            return jsonify( False )
+        
+        # Your code here
+        
+        # 1. Check the signature
+        
+        # 2. Add the order to the table
+        
+        # 3a. Check if the order is backed by a transaction equal to the sell_amount (this is new)
+
+        # 3b. Fill the order (as in Exchange Server II) if the order is valid
+        
+        # 4. Execute the transactions
+        
+        # If all goes well, return jsonify(True). else return jsonify(False)
         plat = content['payload']['platform']
         msg = content['payload']
         message = json.dumps(msg)
@@ -161,79 +292,45 @@ def trade():
           else:
             print( "Algo failed!" )
             verify = False
-        
-        order = Order( sender_pk=msg['sender_pk'],receiver_pk=msg['receiver_pk'], buy_currency=msg['buy_currency'], sell_currency=msg['sell_currency'], buy_amount=msg['buy_amount'], sell_amount=msg['sell_amount'], signature = content['sig'] )
-         
-
-      #   g.session.add(order)
-      #   g.session.commit();
-    
-      #   buy_curr = order.buy_currency
-      #   sell_curr = order.sell_currency
-      #   buy_amount = order.buy_amount
-      #   sell_amount = order.sell_amount
-      #   send_pk = order.sender_pk
-      #   receive_pk = order.receiver_pk
-      #   exchange_rate = buy_am/sell_am
-
-      #   existing = g.session.query(Order).filter(Order.filled == None, Order.buy_currency == order.sell_currency,Order.sell_currency == order.buy_currency, Order.sell_amount/Order.buy_amount >= exchange_rate).first()
-      #   g.session.commit()
-      #   if existing == None:
-      #       return
-
-      #   curr_time = datetime.now()
-      #   order.filled = curr_time
-      #   existing.filled = curr_time
-
-      #   g.session.commit()
-      #   existing.counterparty_id = order.id
-      #   order.counterparty_id = existing.id
-      #   g.session.commit()
 
 
-      #   if(existing.sell_amount <= buy_am):
-      #       new_buy = buy_am - existing.sell_amount
-      #       new_sell = new_buy / exchange_rate
-      # #Insert the order
-      #       order_obj = Order( sender_pk=order.sender_pk,receiver_pk=order.receiver_pk, buy_currency=order.buy_currency, sell_currency=order.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = order.id)
-      #       g.session.add(order_obj)
-      #       g.session.commit()
-      #   elif(existing.sell_amount>buy_am):
-      #       new_sell = existing.sell_amount - buy_am
-      #       new_buy = new_sell * existing.buy_amount/existing.sell_amount
-      # #Insert the order
-      #       order_obj = Order( sender_pk=existing.sender_pk,receiver_pk=existing.receiver_pk, buy_currency=existing.buy_currency, sell_currency=existing.sell_currency, buy_amount=new_buy, sell_amount=new_sell, creator_id = existing.id)
-      #       g.session.add(order_obj)
-      #       g.session.commit()
-        process_order(order)
-        # TODO: Be sure to return jsonify(True) or jsonify(False) depending on if the method was successful
         if verify == True:
-          g.session.commit();
-          
+          # 1. Check the signature
+        	msg_dict['signature'] = sig
+            # 2. Add the order to the table   
+        	order = Order( sender_pk=msg_dict['sender_pk'],receiver_pk=msg_dict['receiver_pk'], buy_currency=msg_dict['buy_currency'], sell_currency=msg_dict['sell_currency'], buy_amount=msg_dict['buy_amount'], sell_amount=msg_dict['sell_amount'], signature = content['sig'] )
+         # 3a. Check if the order is backed by a transaction equal to the sell_amount (this is new)
+        	if order.sell_currency == "Ethereum":
+            	tx = g.w3.eth.get_transaction(msg_dict['tx_id'])
+            	if tx is None or tx["value"] != order.sell_amount:
+                    return jsonify(False)
+
+        	if order.sell_currency == "Algorand":
+              	tx = indexer.search_transaction(txid=payload['tx_id'])
+              	if tx is None or tx.amt != order.sell_amount:
+               		return jsonify(False)
+        # 3b. Fill the order (as in Exchange Server II) if the order is valid
+          txes = []
+          fill_order(order, txes)
+                  
+                  
+          execute_txes(txes)
           return jsonify(True)
-          
-        else:
-          log_message(content)
-          return jsonify(False)
-        # TODO: Check the signature
-        
-        # TODO: Add the order to the database
-        
-        # TODO: Fill the order
-        
-        # TODO: Be sure to return jsonify(True) or jsonify(False) depending on if the method was successful
-        
+    	else:
+          	log_message(payload)
+          	return jsonify(False)
 
 @app.route('/order_book')
 def order_book():
-    #Your code here
-    #Note that you can access the database session using g.session
+    #fields = [ "buy_currency", "sell_currency", "buy_amount", "sell_amount", "signature", "tx_id", "receiver_pk", "sender_pk" ]
+    
+    # Same as before
     existing = g.session.query(Order).all()
     result = {"data": []}
 
     for row in existing:
         # timestamp_str = str(row.timestamp)
-        result['data'].append({'sender_pk': row.sender_pk,'receiver_pk': row.receiver_pk, 'buy_currency': row.buy_currency, 'sell_currency': row.sell_currency, 'buy_amount': row.buy_amount, 'sell_amount': row.sell_amount,'signature': row.signature})
+        result['data'].append({'tx_id':row.tx_id ,'sender_pk': row.sender_pk,'receiver_pk': row.receiver_pk, 'buy_currency': row.buy_currency, 'sell_currency': row.sell_currency, 'buy_amount': row.buy_amount, 'sell_amount': row.sell_amount,'signature': row.signature})
 
     return jsonify(result)
 
