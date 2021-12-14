@@ -102,8 +102,8 @@ def get_algo_keys():
     # TODO: Generate or read (using the mnemonic secret) 
     # the algorand public/private keys
 
-    algo_pk = "SB5D3PBO5HOEW7R3ZDQGVP3JXQ6KPB4ZY67IXAVRUXFY7CETRA3YVATE3I"
-    algo_sk = "z1AfF4d0433psWNAS+b0acQDbmknKuFOePUGAudY3AqQej28LuncS347yOBqv2m8PKeHmce+i4KxpcuPiJOINw=="
+    algo_pk = "TK3UUXU5V5JVJRAE6ZSXFLPTCY3O5BFAZVRQQKRGQFEJ54TZW44DJ3B7W4"
+    algo_sk = "thmCRkH7LVdhnxjNYW+5lEu52VnhcMHM86Q+onSoxb2at0pena9TVMQE9mVyrfMWNu6EoM1jCComgUie8nm3OA=="
     
     return algo_sk, algo_pk
 
@@ -116,9 +116,9 @@ def get_eth_keys(filename = "eth_mnemonic.txt"):
 
 
 
-    eth_pk = '0x04307F37286361Ad0B5E9d59b7d424051aF64D57'
+    eth_pk = '0x270bd224a4B42e199c67105b0602EAd57443F0BB'
 
-    eth_sk = '16fc7fbbcc6e972ddedbb47aed301ed8ba11c9a72d413ad4d85598d9dea965d1'
+    eth_sk = b'?|4\xbe\xf2e\xe0\x1f\x05\x08\x1dq7\x85\xac\x18,?!N_\x7f\x1f(r\xc2\xa1\x84\x8fS\x12K'
     return eth_sk, eth_pk
   
 def fill_order(order, txes=[]):
